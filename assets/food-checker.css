@@ -344,6 +344,7 @@
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
 .doggl-portion-amount {
@@ -605,7 +606,8 @@
 }
 
 .doggl-disclaimer-title {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.125rem;
     color: #92400e;
     margin-bottom: 0.5rem;
 }
