@@ -21,6 +21,34 @@ function doggl_food_import_page() {
     <div class="wrap">
         <h1><?php echo esc_html(__('Lebensmittel CSV-Import', 'doggl-food-checker')); ?></h1>
         <p><?php echo wp_kses_post(__('Laden Sie eine CSV mit den Spalten <code>title,alt_names,category,status,max_frequency,emergency,portion_g_per_kg,reason,symptoms,notes,slug</code> hoch.', 'doggl-food-checker')); ?></p>
+        <?php
+        if (!empty($_GET['ok']) && !empty($_GET['r'])) {
+            $report = get_transient(sanitize_text_field($_GET['r']));
+            if ($report) {
+                $ins = intval($report['inserted'] ?? 0);
+                $upd = intval($report['updated'] ?? 0);
+                $skp = intval($report['skipped'] ?? 0);
+                $err = intval($report['errors'] ?? 0);
+                $log = $report['log'] ?? null;
+
+                $class = $err ? 'notice-warning' : 'notice-success';
+                echo '<div class="notice ' . $class . ' is-dismissible"><p><strong>Import abgeschlossen.</strong> ';
+                echo 'Neu: ' . $ins . ' &nbsp;|&nbsp; Aktualisiert: ' . $upd . ' &nbsp;|&nbsp; Übersprungen: ' . $skp . ' &nbsp;|&nbsp; Fehler: ' . $err . '</p></div>';
+
+                if ($log) {
+                    echo '<details style="margin:12px 0;"><summary>Details anzeigen</summary>';
+                    foreach (['inserted' => 'Neu angelegt', 'updated' => 'Aktualisiert', 'skipped' => 'Übersprungen', 'errors' => 'Fehler'] as $k => $label) {
+                        if (!empty($log[$k])) {
+                            echo '<p><strong>' . $label . ' (' . count($log[$k]) . '):</strong><br>' . esc_html(implode(', ', $log[$k])) . '</p>';
+                        }
+                    }
+                    echo '</details>';
+                }
+
+                delete_transient(sanitize_text_field($_GET['r']));
+            }
+        }
+        ?>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data">
             <?php wp_nonce_field('doggl_food_import'); ?>
             <input type="hidden" name="action" value="doggl_food_import">
@@ -47,20 +75,36 @@ function doggl_food_handle_import() {
         wp_safe_redirect(add_query_arg(['page' => 'doggl-food-import', 'err' => 'upload'], admin_url('edit.php?post_type=doggl_food')));
         exit;
     }
-    $res = doggl_food_import_from_csv($uploaded['file'], !empty($_POST['overwrite']));
-    wp_safe_redirect(add_query_arg(['page' => 'doggl-food-import', 'ok' => 1] + $res, admin_url('edit.php?post_type=doggl_food')));
+
+    $report = doggl_food_import_from_csv($uploaded['file'], !empty($_POST['overwrite']), true);
+
+    $key = 'doggl_food_import_' . get_current_user_id() . '_' . time();
+    set_transient($key, $report, 15 * MINUTE_IN_SECONDS);
+
+    wp_safe_redirect(add_query_arg([
+        'page' => 'doggl-food-import',
+        'ok'   => 1,
+        'r'    => $key,
+    ], admin_url('edit.php?post_type=doggl_food')));
     exit;
 }
 
 /**
  * CSV fields: title, alt_names, category, status, max_frequency, emergency, portion_g_per_kg, reason, symptoms, notes, slug
  */
-function doggl_food_import_from_csv($filepath, $overwrite = false) {
+function doggl_food_import_from_csv($filepath, $overwrite = false, $with_log = false) {
     $cpt = 'doggl_food';
     $inserted = 0;
     $updated = 0;
     $skipped = 0;
     $errors = 0;
+
+    $log = [
+        'inserted' => [],
+        'updated'  => [],
+        'skipped'  => [],
+        'errors'   => [],
+    ];
 
     if (!file_exists($filepath) || !($fh = fopen($filepath, 'r'))) {
         return ['errors' => 1];
@@ -68,6 +112,7 @@ function doggl_food_import_from_csv($filepath, $overwrite = false) {
 
     $headers = fgetcsv($fh, 0, ',');
     $headers = array_map('trim', $headers);
+    $map = array_flip($headers);
     $required = ['title', 'status', 'max_frequency', 'emergency'];
     foreach ($required as $h) {
         if (!in_array($h, $headers, true)) {
@@ -75,8 +120,6 @@ function doggl_food_import_from_csv($filepath, $overwrite = false) {
             return ['errors' => 1, 'missing' => $h];
         }
     }
-
-    $map = array_flip($headers);
 
     while (($row = fgetcsv($fh, 0, ',')) !== false) {
         if (count($row) === 1 && trim($row[0]) === '') {
@@ -92,6 +135,9 @@ function doggl_food_import_from_csv($filepath, $overwrite = false) {
         $slug = sanitize_title($slug_input ? $slug_input : $title);
         if ($title === '') {
             $skipped++;
+            if ($with_log) {
+                $log['skipped'][] = '(leer)';
+            }
             continue;
         }
 
@@ -123,26 +169,49 @@ function doggl_food_import_from_csv($filepath, $overwrite = false) {
         }
 
         if ($existing && $overwrite) {
-            wp_update_post(['ID' => $existing->ID, 'post_title' => $title, 'post_name' => $slug, 'post_status' => 'publish']);
-            foreach ($meta as $k => $v) {
-                update_post_meta($existing->ID, $k, $v);
+            $ok = wp_update_post(['ID' => $existing->ID, 'post_title' => $title, 'post_name' => $slug, 'post_status' => 'publish']);
+            if (!is_wp_error($ok)) {
+                foreach ($meta as $k => $v) {
+                    update_post_meta($existing->ID, $k, $v);
+                }
+                $updated++;
+                if ($with_log) {
+                    $log['updated'][] = $title;
+                }
+            } else {
+                $errors++;
+                if ($with_log) {
+                    $log['errors'][] = $title . ' (update)';
+                }
             }
-            $updated++;
         } elseif ($existing && !$overwrite) {
             $skipped++;
+            if ($with_log) {
+                $log['skipped'][] = $title;
+            }
         } else {
             $post_id = wp_insert_post(['post_type' => $cpt, 'post_title' => $title, 'post_name' => $slug, 'post_status' => 'publish']);
-            if (is_wp_error($post_id) || !$post_id) {
+            if (!is_wp_error($post_id) && $post_id) {
+                foreach ($meta as $k => $v) {
+                    update_post_meta($post_id, $k, $v);
+                }
+                $inserted++;
+                if ($with_log) {
+                    $log['inserted'][] = $title;
+                }
+            } else {
                 $errors++;
-                continue;
+                if ($with_log) {
+                    $log['errors'][] = $title . ' (insert)';
+                }
             }
-            foreach ($meta as $k => $v) {
-                update_post_meta($post_id, $k, $v);
-            }
-            $inserted++;
         }
     }
 
     fclose($fh);
-    return compact('inserted', 'updated', 'skipped', 'errors');
+    $result = compact('inserted', 'updated', 'skipped', 'errors');
+    if ($with_log) {
+        $result['log'] = $log;
+    }
+    return $result;
 }
