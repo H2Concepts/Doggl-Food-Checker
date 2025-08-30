@@ -255,7 +255,7 @@ jQuery(document).ready(function($) {
             </div>
             
             <div class="doggl-quick-answer">
-                <h3 class="doggl-section-title">Schnelle Antwort</h3>
+                <h4 class="doggl-section-title">Schnelle Antwort</h4>
                 <p class="doggl-quick-answer-text">${statusConfig.shortAnswer}</p>
             </div>
         `;
@@ -265,12 +265,12 @@ jQuery(document).ready(function($) {
             html += `
                 <div class="doggl-portion-recommendation">
                     <h4 class="doggl-portion-title">
-                        🕐 Empfohlene Portion
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-4 w-4 mr-2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Empfohlene Portion
                     </h4>
                     <p class="doggl-portion-amount">
                         <span class="doggl-portion-value">${portion}g</span> für deinen ${dogWeight}kg Hund
                     </p>
-                    ${selectedFood.maxFrequency ? 
+                    ${selectedFood.maxFrequency ?
                         `<p class="doggl-portion-frequency">Häufigkeit: ${getFrequencyText(selectedFood.maxFrequency)}</p>` : ''}
                 </div>
             `;
@@ -286,7 +286,7 @@ jQuery(document).ready(function($) {
         `;
         
         // Symptoms
-        if (selectedFood.symptoms && selectedFood.symptoms.length > 0) {
+        if (selectedFood.status !== 'safe' && selectedFood.symptoms && selectedFood.symptoms.length > 0) {
             html += `
                 <div class="doggl-symptoms">
                     <h4 class="doggl-section-title">Mögliche Symptome</h4>

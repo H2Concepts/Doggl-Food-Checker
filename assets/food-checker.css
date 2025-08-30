@@ -338,7 +338,8 @@
 }
 
 .doggl-portion-title {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.125rem;
     color: #1e3a8a;
     margin-bottom: 0.5rem;
     display: flex;
