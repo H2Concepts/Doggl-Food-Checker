@@ -343,19 +343,8 @@ class DogglFoodChecker {
         if ($dog_name) {
             $args['dog_name'] = $dog_name;
         }
-        $weight = $request->get_param('weight_kg');
-        if ($weight) {
-            $args['weight_kg'] = floatval($weight);
-        }
 
-        $pdf = doggl_generate_food_pdf(array($item), $args);
-        if (is_wp_error($pdf)) {
-            return $pdf;
-        }
-
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="food-check.pdf"');
-        echo $pdf;
+        doggl_generate_food_pdf(array($item), $args);
         exit;
     }
     
@@ -554,32 +543,33 @@ class DogglFoodChecker {
 }
 
 function doggl_generate_food_pdf(array $items, array $args = array()) {
-    $endpoint = 'https://h2concepts.de/tools/food_pdf.php';
-    $key      = 'h2c_92DF!kf392AzJxLP0sQRX';
+    $endpoint = 'https://h2concepts.de/tools/food_pdf.php?key=h2c_92DF!kf392AzJxLP0sQRX';
 
     $payload = array(
         'report_title' => $args['report_title'] ?? 'Food-Checker Ergebnis',
         'dog_name'     => $args['dog_name'] ?? '',
-        'logo_url'     => $args['logo_url'] ?? get_site_icon_url(),
+        'logo_url'     => $args['logo_url'] ?? 'https://getdoggl.de/wp-content/uploads/2024/12/doggle_logo_lila.webp',
+        'accent'       => '#404697',
         'generated_at' => current_time('Y-m-d H:i'),
-        'weight_kg'    => $args['weight_kg'] ?? '',
         'items_json'   => wp_json_encode($items),
     );
 
-    $res = wp_remote_post(add_query_arg('key', $key, $endpoint), array(
+    $res = wp_remote_post($endpoint, array(
         'timeout' => 30,
         'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
         'body'    => $payload,
     ));
 
-    if (is_wp_error($res)) {
-        return $res;
-    }
-    if (wp_remote_retrieve_response_code($res) !== 200) {
-        return new WP_Error('pdf_http', 'PDF-Service Fehler', array('res' => $res));
+    if (is_wp_error($res) || wp_remote_retrieve_response_code($res) !== 200) {
+        wp_die('PDF-Service Fehler');
     }
 
-    return wp_remote_retrieve_body($res);
+    $pdf = wp_remote_retrieve_body($res);
+    nocache_headers();
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="food-check.pdf"');
+    echo $pdf;
+    exit;
 }
 
 require_once DOGGL_FOOD_CHECKER_PLUGIN_DIR . 'admin/import.php';
