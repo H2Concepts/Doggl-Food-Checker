@@ -25,9 +25,24 @@ jQuery(document).ready(function($) {
         
         // Check if we're on a shared result page
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('doggl_token')) {
+        const token = urlParams.get('doggl_token');
+        if (token) {
             // Hide search and weight sections for shared results
             $('.doggl-search-section, .doggl-weight-section, .doggl-no-selection').hide();
+
+            $.ajax({
+                url: doggl_food.rest_url + 'food/shared',
+                method: 'GET',
+                data: { token: token },
+            })
+            .done(function(res) {
+                selectedFood = res.food;
+                dogWeight = res.weight || dogWeight;
+                updateResultCard();
+            })
+            .fail(function() {
+                $resultCard.html('<p>Dieses geteilte Ergebnis ist nicht mehr verfügbar.</p>').show();
+            });
         }
     }
     

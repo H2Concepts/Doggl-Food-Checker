@@ -135,6 +135,19 @@ class DogglFoodChecker {
             'callback' => array($this, 'create_share_token'),
             'permission_callback' => '__return_true',
         ));
+
+        register_rest_route('doggl/v1', '/food/shared', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_shared_result'),
+            'permission_callback' => '__return_true',
+            'args' => array(
+                'token' => array(
+                    'required' => true,
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+            ),
+        ));
         
         register_rest_route('doggl/v1', '/food/export', array(
             'methods' => array('GET'),
@@ -318,6 +331,27 @@ class DogglFoodChecker {
 
         return array('url' => $share_url, 'token' => $token);
     }
+
+    public function get_shared_result($request) {
+        $token = $request->get_param('token');
+        $share_data = get_transient('doggl_food_' . $token);
+
+        if (!$share_data) {
+            return new WP_Error('not_found', __('Geteiltes Ergebnis nicht gefunden oder abgelaufen.', 'doggl-food-checker'), array('status' => 404));
+        }
+
+        $food_data = $this->get_food_data($share_data['foodId']);
+        if (!$food_data) {
+            return new WP_Error('not_found', __('Lebensmittel nicht gefunden.', 'doggl-food-checker'), array('status' => 404));
+        }
+
+        return array(
+            'food'      => $food_data,
+            'weight'    => floatval($share_data['weight']),
+            'portion'   => floatval($share_data['portion']),
+            'timestamp' => $share_data['timestamp'],
+        );
+    }
     
     public function export_pdf($request) {
         $id = $request->get_param('id');
@@ -391,31 +425,8 @@ class DogglFoodChecker {
             'theme' => 'default'
         ), $atts, 'doggl_food_check');
         
-        // Check for share token
-        $token = get_query_var('doggl_token');
-        if ($token) {
-            return $this->render_shared_result($token);
-        }
-        
         ob_start();
         include DOGGL_FOOD_CHECKER_PLUGIN_DIR . 'templates/food-checker.php';
-        return ob_get_clean();
-    }
-    
-    private function render_shared_result($token) {
-        $share_data = get_transient('doggl_food_' . $token);
-        
-        if (!$share_data) {
-            return '<div class="doggl-error">' . __('Geteiltes Ergebnis nicht gefunden oder abgelaufen.', 'doggl-food-checker') . '</div>';
-        }
-        
-        $food_data = $this->get_food_data($share_data['foodId']);
-        if (!$food_data) {
-            return '<div class="doggl-error">' . __('Lebensmittel nicht gefunden.', 'doggl-food-checker') . '</div>';
-        }
-        
-        ob_start();
-        include DOGGL_FOOD_CHECKER_PLUGIN_DIR . 'templates/shared-result.php';
         return ob_get_clean();
     }
     
