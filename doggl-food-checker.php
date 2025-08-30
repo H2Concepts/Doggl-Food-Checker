@@ -159,22 +159,38 @@ class DogglFoodChecker {
         
         $normalized_query = $this->normalize_string($query);
         
-        // Search in posts
-        $posts = get_posts(array(
-            'post_type' => 'doggl_food',
+        // Search posts by title/content
+        $posts_query = get_posts(array(
+            'post_type'      => 'doggl_food',
             'posts_per_page' => 20,
-            'post_status' => 'publish',
-            'meta_query' => array(
+            'post_status'    => 'publish',
+            's'              => $query
+        ));
+
+        // Search posts by alternative names
+        $alt_posts_query = get_posts(array(
+            'post_type'      => 'doggl_food',
+            'posts_per_page' => 20,
+            'post_status'    => 'publish',
+            'meta_query'     => array(
                 'relation' => 'OR',
                 array(
-                    'key' => 'alt_names',
-                    'value' => $normalized_query,
+                    'key'     => 'alt_names',
+                    'value'   => $query,
+                    'compare' => 'LIKE'
+                ),
+                array(
+                    'key'     => 'alt_names',
+                    'value'   => $normalized_query,
                     'compare' => 'LIKE'
                 )
-            ),
-            's' => $query
+            )
         ));
-        
+
+        // Merge and deduplicate results by post ID
+        $posts = array_merge($posts_query, $alt_posts_query);
+        $posts = array_values(array_unique($posts, SORT_REGULAR));
+
         if (empty($posts)) {
             return new WP_Error('no_matches', __('Keine Treffer gefunden', 'doggl-food-checker'), array('status' => 404));
         }
