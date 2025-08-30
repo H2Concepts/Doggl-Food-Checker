@@ -81,17 +81,13 @@
 .doggl-loading {
     position: absolute;
     right: 1rem;
-    top: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
+    top: 0.5rem;
 }
 
 .doggl-spinner {
     width: 1.25rem;
     height: 1.25rem;
     border: 2px solid #e5e7eb;
-    border-top-color: #3b82f6;
     border-radius: 50%;
     animation: doggl-spin 0.6s linear infinite;
 }
