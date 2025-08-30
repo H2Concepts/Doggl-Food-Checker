@@ -347,7 +347,6 @@ class DogglFoodChecker {
         }
 
         doggl_generate_food_pdf(array($item), $args);
-        exit;
     }
     
     public function get_food_item($request) {
@@ -545,7 +544,8 @@ class DogglFoodChecker {
 }
 
 function doggl_generate_food_pdf(array $items, array $args = array()) {
-    $endpoint = 'https://h2concepts.de/tools/food_pdf.php?key=h2c_92DF!kf392AzJxLP0sQRX';
+    $endpoint = 'https://h2concepts.de/tools/food_pdf.php';
+    $api_key  = 'h2c_92DF!kf392AzJxLP0sQRX';
 
     $payload = array(
         'report_title' => $args['report_title'] ?? 'Food-Checker Ergebnis',
@@ -556,44 +556,58 @@ function doggl_generate_food_pdf(array $items, array $args = array()) {
         'items_json'   => wp_json_encode($items),
     );
 
-    $res = wp_remote_post($endpoint, array(
+    $url      = add_query_arg('key', rawurlencode($api_key), $endpoint);
+    $req_args = array(
         'timeout' => 30,
-        'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
+        'method'  => 'POST',
+        'headers' => array('Accept' => 'application/pdf'),
         'body'    => $payload,
-    ));
+    );
 
-    if (is_wp_error($res) || wp_remote_retrieve_response_code($res) !== 200) {
-        wp_die('PDF-Service Fehler');
+    $res = wp_remote_post($url, $req_args);
+
+    if (is_wp_error($res)) {
+        wp_die('PDF-Export fehlgeschlagen: ' . esc_html($res->get_error_message()));
     }
 
-    $pdf = wp_remote_retrieve_body($res);
+    $code = wp_remote_retrieve_response_code($res);
+    $pdf  = wp_remote_retrieve_body($res);
 
-    // Optional: Header vom PDF-Service übernehmen, falls gesetzt
-    $remote_headers = wp_remote_retrieve_headers($res);
-    $remote_cd = isset($remote_headers['content-disposition']) ? $remote_headers['content-disposition'] : '';
+    if ($code !== 200 || !$pdf) {
+        $snippet = wp_strip_all_tags(substr((string) $pdf, 0, 300));
+        wp_die('PDF-Export fehlgeschlagen (HTTP ' . $code . '). Antwort: ' . esc_html($snippet));
+    }
 
-    // EIGENEN Dateinamen bauen (Hundename + Datum/Zeit)
-    $dog_name   = $args['dog_name'] ?? '';
-    $slug       = preg_replace('/[^a-z0-9\-]+/i', '-', strtolower($dog_name ?: 'report'));
-    $timestamp  = current_time('Y-m-d_H-i-s'); // WP-Zeitzone
-    $filename   = "food-check-{$slug}-{$timestamp}.pdf";
+    if (strncmp($pdf, '%PDF', 4) !== 0) {
+        $snippet = wp_strip_all_tags(substr((string) $pdf, 0, 300));
+        wp_die('Ungültige PDF-Antwort vom Server. Beginn: ' . esc_html($snippet));
+    }
 
-    // Sauber headern (nichts doppelt)
+    $dog_name  = $payload['dog_name'] ?? '';
+    $slug      = preg_replace('/[^a-z0-9\-]+/i', '-', strtolower($dog_name ?: 'report'));
+    $timestamp = current_time('Y-m-d_H-i-s');
+    $filename  = "food-check-{$slug}-{$timestamp}.pdf";
+
+    if (function_exists('ob_get_level')) {
+        while (ob_get_level() > 0) {
+            @ob_end_clean();
+        }
+    }
+    if (function_exists('apache_setenv')) {
+        @apache_setenv('no-gzip', '1');
+    }
+    @ini_set('zlib.output_compression', '0');
+
     nocache_headers();
     header_remove('Content-Type');
     header_remove('Content-Disposition');
     header_remove('Content-Length');
+    header_remove('Cache-Control');
+    header_remove('Pragma');
 
     header('Content-Type: application/pdf');
     header('Content-Length: ' . strlen($pdf));
-
-    // Wenn der Remote-Server bereits einen Content-Disposition liefert, kannst du ihn nutzen.
-    // Sonst unseren sauberen Fallback setzen:
-    if ($remote_cd) {
-        header($remote_cd);
-    } else {
-        header('Content-Disposition: attachment; filename="'.$filename.'"; filename*=UTF-8\'\''.rawurlencode($filename));
-    }
+    header('Content-Disposition: attachment; filename="' . $filename . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
 
     echo $pdf;
     exit;
