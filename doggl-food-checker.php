@@ -567,9 +567,34 @@ function doggl_generate_food_pdf(array $items, array $args = array()) {
     }
 
     $pdf = wp_remote_retrieve_body($res);
+
+    // Optional: Header vom PDF-Service übernehmen, falls gesetzt
+    $remote_headers = wp_remote_retrieve_headers($res);
+    $remote_cd = isset($remote_headers['content-disposition']) ? $remote_headers['content-disposition'] : '';
+
+    // EIGENEN Dateinamen bauen (Hundename + Datum/Zeit)
+    $dog_name   = $args['dog_name'] ?? '';
+    $slug       = preg_replace('/[^a-z0-9\-]+/i', '-', strtolower($dog_name ?: 'report'));
+    $timestamp  = current_time('Y-m-d_H-i-s'); // WP-Zeitzone
+    $filename   = "food-check-{$slug}-{$timestamp}.pdf";
+
+    // Sauber headern (nichts doppelt)
     nocache_headers();
+    header_remove('Content-Type');
+    header_remove('Content-Disposition');
+    header_remove('Content-Length');
+
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="food-check.pdf"');
+    header('Content-Length: ' . strlen($pdf));
+
+    // Wenn der Remote-Server bereits einen Content-Disposition liefert, kannst du ihn nutzen.
+    // Sonst unseren sauberen Fallback setzen:
+    if ($remote_cd) {
+        header($remote_cd);
+    } else {
+        header('Content-Disposition: attachment; filename="'.$filename.'"; filename*=UTF-8\'\''.rawurlencode($filename));
+    }
+
     echo $pdf;
     exit;
 }
