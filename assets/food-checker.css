@@ -377,11 +377,12 @@
     margin-top: 0.5rem;
 }
 
+/* Informational note block shown on result cards */
 .food-info-card {
-    border: 1px solid #e5e7eb;
+    border: 1px solid #ffb80c;
     border-radius: 10px;
     padding: 14px 16px;
-    background: #fafafa;
+    background: #fae3af;
     margin: 25px 0;
 }
 
@@ -395,6 +396,7 @@
 .food-info-card p {
     margin: 0;
     line-height: 1.5;
+    color: #000000;
 }
 
 /* Symptoms */
