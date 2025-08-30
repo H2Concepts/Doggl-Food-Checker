@@ -146,12 +146,8 @@ jQuery(document).ready(function($) {
     function searchFoods(query) {
         $.ajax({
             url: doggl_food.rest_url + 'food/search',
-            method: 'POST',
-            data: JSON.stringify({
-                q: query,
-                weight_kg: dogWeight
-            }),
-            contentType: 'application/json',
+            method: 'GET',
+            data: { q: query, weight_kg: dogWeight },
             beforeSend: function(xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', doggl_food.nonce);
             }
@@ -162,18 +158,25 @@ jQuery(document).ready(function($) {
             trackEvent('food_search', { query: query });
         })
         .fail(function(xhr) {
+            console.error('Food search failed', xhr.status, xhr.responseText);
             hideLoading();
-            if (xhr.status === 404) {
-                showNoResults(query);
-            } else {
-                console.error('Search failed:', xhr.responseJSON);
-            }
+            $searchResults
+                .html('<li class="doggl-search-result doggl-empty">Keine Ergebnisse oder Fehler bei der Suche.</li>');
+            showResults();
         });
     }
-    
+
     function displayResults(results) {
         hideLoading();
-        
+
+        if (!results || (!results.best && !Array.isArray(results.alternatives))) {
+            $searchResults.html(
+                '<li class="doggl-search-result doggl-empty">Keine Ergebnisse</li>'
+            );
+            showResults();
+            return;
+        }
+
         const allResults = [results.best, ...results.alternatives].filter(Boolean);
         let html = '';
         
@@ -207,18 +210,6 @@ jQuery(document).ready(function($) {
             selectFood(food);
         });
         
-        showResults();
-    }
-    
-    function showNoResults(query) {
-        const html = `
-            <li class="doggl-search-result doggl-no-results">
-                <p style="text-align: center; color: #6b7280; padding: 1rem;">
-                    ${doggl_food.strings.no_results} "${escapeHtml(query)}"
-                </p>
-            </li>
-        `;
-        $searchResults.html(html).show();
         showResults();
     }
     

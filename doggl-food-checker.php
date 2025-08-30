@@ -98,7 +98,7 @@ class DogglFoodChecker {
         wp_localize_script('doggl-food-checker', 'doggl_food', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'rest_url' => rest_url('doggl/v1/'),
-            'nonce' => wp_create_nonce('doggl_food_nonce'),
+            'nonce' => wp_create_nonce('wp_rest'),
             'strings' => array(
                 'search_placeholder' => __('Lebensmittel eingeben (z.B. Schokolade, Trauben, Käse)', 'doggl-food-checker'),
                 'no_results' => __('Keine Ergebnisse gefunden', 'doggl-food-checker'),
@@ -113,7 +113,7 @@ class DogglFoodChecker {
     
     public function register_rest_routes() {
         register_rest_route('doggl/v1', '/food/search', array(
-            'methods' => 'POST',
+            'methods' => array('GET', 'POST'),
             'callback' => array($this, 'search_foods'),
             'permission_callback' => '__return_true',
             'args' => array(
@@ -150,6 +150,11 @@ class DogglFoodChecker {
     }
     
     public function search_foods($request) {
+        // erlaubt auch GET ?q=... ohne JSON
+        if ($request->get_method() === 'GET' && !$request->get_param('q')) {
+            return new WP_Error('query_missing', __('Suchbegriff fehlt', 'doggl-food-checker'), array('status' => 400));
+        }
+
         $query = $request->get_param('q');
         $weight_kg = $request->get_param('weight_kg');
         
