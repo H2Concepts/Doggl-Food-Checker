@@ -47,15 +47,6 @@
     position: relative;
 }
 
-.doggl-search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.25rem;
-    color: #9ca3af;
-}
-
 .doggl-search-input {
     width: 100%;
     padding: 1rem 1rem 1rem 3rem;
@@ -64,6 +55,8 @@
     border-radius: 0.75rem;
     outline: none;
     transition: all 0.2s ease;
+    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTEiIGN5PSIxMSIgcj0iOCIvPjxsaW5lIHgxPSIyMSIgeTE9IjIxIiB4Mj0iMTYuNjUiIHkyPSIxNi42NSIvPjwvc3ZnPg==") no-repeat 1rem center;
+    background-size: 1.25rem;
 }
 
 .doggl-search-input:focus {

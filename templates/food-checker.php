@@ -4,11 +4,10 @@
         <!-- Search Section -->
         <div class="doggl-search-section">
             <div class="doggl-search-container">
-                <div class="doggl-search-icon">🔍</div>
-                <input 
-                    type="text" 
+                <input
+                    type="text"
                     id="doggl-search-input"
-                    class="doggl-search-input" 
+                    class="doggl-search-input"
                     placeholder="<?php echo esc_attr(__('Lebensmittel eingeben (z.B. Schokolade, Trauben, Käse)', 'doggl-food-checker')); ?>"
                     autocomplete="off"
                     role="combobox"
