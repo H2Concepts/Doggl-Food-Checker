@@ -15,9 +15,7 @@
                     aria-expanded="false"
                     aria-controls="doggl-search-results"
                 />
-                <div class="doggl-loading" id="doggl-loading" style="display: none;">
-                    <div class="doggl-spinner"></div>
-                </div>
+                <div class="doggl-loading" id="doggl-loading" style="display: none;"></div>
             </div>
             
             <!-- Search Results Dropdown -->

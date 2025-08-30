@@ -125,7 +125,7 @@ jQuery(document).ready(function($) {
     }
     
     function showLoading() {
-        $loading.css('display', 'flex');
+        $loading.css('display', 'inline-block');
     }
 
     function hideLoading() {
