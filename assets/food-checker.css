@@ -382,13 +382,14 @@
     border-radius: 10px;
     padding: 14px 16px;
     background: #fafafa;
-    margin-top: 12px;
+    margin: 25px 0;
 }
 
 .food-info-card h4 {
-    margin: 0 0 6px;
-    font-size: 14px;
     font-weight: 600;
+    font-size: 1.125rem;
+    color: #111827;
+    margin-bottom: 0.5rem;
 }
 
 .food-info-card p {
