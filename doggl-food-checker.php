@@ -158,7 +158,14 @@ class DogglFoodChecker {
         }
         
         $normalized_query = $this->normalize_string($query);
-        
+
+        // Build additional search terms for simple plural forms
+        $search_terms = array($query, $normalized_query);
+        if (substr($normalized_query, -1) === 'n') {
+            $search_terms[] = substr($normalized_query, 0, -1);
+        }
+        $search_terms = array_unique($search_terms);
+
         // Search posts by title/content
         $posts_query = get_posts(array(
             'post_type'      => 'doggl_food',
@@ -168,28 +175,29 @@ class DogglFoodChecker {
         ));
 
         // Search posts by alternative names
+        $meta_queries = array('relation' => 'OR');
+        foreach ($search_terms as $term) {
+            $meta_queries[] = array(
+                'key'     => 'alt_names',
+                'value'   => $term,
+                'compare' => 'LIKE'
+            );
+        }
+
         $alt_posts_query = get_posts(array(
             'post_type'      => 'doggl_food',
             'posts_per_page' => 20,
             'post_status'    => 'publish',
-            'meta_query'     => array(
-                'relation' => 'OR',
-                array(
-                    'key'     => 'alt_names',
-                    'value'   => $query,
-                    'compare' => 'LIKE'
-                ),
-                array(
-                    'key'     => 'alt_names',
-                    'value'   => $normalized_query,
-                    'compare' => 'LIKE'
-                )
-            )
+            'meta_query'     => $meta_queries
         ));
 
         // Merge and deduplicate results by post ID
         $posts = array_merge($posts_query, $alt_posts_query);
-        $posts = array_values(array_unique($posts, SORT_REGULAR));
+        $posts_by_id = array();
+        foreach ($posts as $post) {
+            $posts_by_id[$post->ID] = $post;
+        }
+        $posts = array_values($posts_by_id);
 
         if (empty($posts)) {
             return new WP_Error('no_matches', __('Keine Treffer gefunden', 'doggl-food-checker'), array('status' => 404));
