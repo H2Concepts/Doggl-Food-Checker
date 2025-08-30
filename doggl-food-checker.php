@@ -336,6 +336,8 @@ class DogglFoodChecker {
             'info' => $food['info'],
             'symptoms' => implode(', ', $food['symptoms']),
             'notes' => $food['notes'],
+            // Pass reasoning text to the PDF endpoint
+            'reason' => $food['reason'],
         );
 
         $args = array();
