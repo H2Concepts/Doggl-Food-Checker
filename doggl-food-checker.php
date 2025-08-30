@@ -283,7 +283,7 @@ class DogglFoodChecker {
     
     public function create_share_token($request) {
         $data = $request->get_json_params();
-        
+
         $token = wp_generate_password(12, false);
         $share_data = array(
             'foodId' => intval($data['foodId']),
@@ -293,12 +293,13 @@ class DogglFoodChecker {
             'portion' => floatval($data['portion']),
             'timestamp' => current_time('mysql')
         );
-        
+
         // Store for 7 days
         set_transient('doggl_food_' . $token, $share_data, 7 * DAY_IN_SECONDS);
-        
-        $share_url = add_query_arg('doggl_token', $token, home_url());
-        
+
+        $base_url = !empty($data['pageUrl']) ? esc_url_raw($data['pageUrl']) : home_url();
+        $share_url = add_query_arg('doggl_token', $token, $base_url);
+
         return array('url' => $share_url, 'token' => $token);
     }
     

@@ -443,7 +443,8 @@ jQuery(document).ready(function($) {
             foodName: selectedFood.name,
             status: selectedFood.status,
             weight: dogWeight,
-            portion: calculatePortion(selectedFood, dogWeight)
+            portion: calculatePortion(selectedFood, dogWeight),
+            pageUrl: window.location.origin + window.location.pathname
         };
         
         $.ajax({
