@@ -1,13 +1,4 @@
 <div id="doggl-food-checker" class="doggl-container">
-    <!-- Header -->
-    <div class="doggl-header">
-        <h1 class="doggl-title">Darf mein Hund das essen?</h1>
-        <p class="doggl-subtitle">
-            Überprüfe schnell und sicher, ob ein Lebensmittel für deinen Hund geeignet ist. 
-            Mit Portionsempfehlungen und Notfall-Hinweisen.
-        </p>
-    </div>
-
     <!-- Main Tool -->
     <div class="doggl-tool">
         <!-- Search Section -->
