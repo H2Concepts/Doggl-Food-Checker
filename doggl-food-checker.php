@@ -248,7 +248,7 @@ class DogglFoodChecker {
                 'answer' => __('Nein – gefährlich!', 'doggl-food-checker')
             ),
             'toxic' => array(
-                'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-xcircle h-8 w-8 mr-3 text-red-600"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>',
+                'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-xcircle h-8 w-8 mr-3"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>',
                 'title' => __('Hochgiftig', 'doggl-food-checker'),
                 'answer' => __('Nein – hochgiftig!', 'doggl-food-checker')
             ),
