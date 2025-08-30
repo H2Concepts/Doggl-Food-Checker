@@ -283,8 +283,12 @@ jQuery(document).ready(function($) {
                 <p class="doggl-reason-text">${escapeHtml(selectedFood.reason)}</p>
                 ${selectedFood.notes ? `<p class="doggl-notes">${escapeHtml(selectedFood.notes)}</p>` : ''}
             </div>
+            <div class="food-info-card">
+                <h4>Was Sie wissen sollten</h4>
+                <p class="food-info-text">${selectedFood.info ? escapeHtml(selectedFood.info) : '—'}</p>
+            </div>
         `;
-        
+
         // Symptoms
         if (selectedFood.status !== 'safe' && selectedFood.symptoms && selectedFood.symptoms.length > 0) {
             html += `

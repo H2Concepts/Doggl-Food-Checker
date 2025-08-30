@@ -377,6 +377,25 @@
     margin-top: 0.5rem;
 }
 
+.food-info-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #fafafa;
+    margin-top: 12px;
+}
+
+.food-info-card h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.food-info-card p {
+    margin: 0;
+    line-height: 1.5;
+}
+
 /* Symptoms */
 .doggl-symptoms {
     margin-bottom: 1.5rem;

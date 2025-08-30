@@ -20,7 +20,7 @@ function doggl_food_import_page() {
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(__('Lebensmittel CSV-Import', 'doggl-food-checker')); ?></h1>
-        <p><?php echo wp_kses_post(__('Laden Sie eine CSV mit den Spalten <code>title,alt_names,category,status,max_frequency,emergency,portion_g_per_kg,reason,symptoms,notes,slug</code> hoch.', 'doggl-food-checker')); ?></p>
+        <p><?php echo wp_kses_post(__('Laden Sie eine CSV mit den Spalten <code>title,alt_names,category,status,max_frequency,emergency,portion_g_per_kg,reason,symptoms,notes,info,slug</code> hoch.', 'doggl-food-checker')); ?></p>
         <?php
         if (!empty($_GET['ok']) && !empty($_GET['r'])) {
             $report = get_transient(sanitize_text_field($_GET['r']));
@@ -90,7 +90,7 @@ function doggl_food_handle_import() {
 }
 
 /**
- * CSV fields: title, alt_names, category, status, max_frequency, emergency, portion_g_per_kg, reason, symptoms, notes, slug
+ * CSV fields: title, alt_names, category, status, max_frequency, emergency, portion_g_per_kg, reason, symptoms, notes, info, slug
  */
 function doggl_food_import_from_csv($filepath, $overwrite = false, $with_log = false) {
     $cpt = 'doggl_food';
@@ -159,6 +159,7 @@ function doggl_food_import_from_csv($filepath, $overwrite = false, $with_log = f
             'reason'           => $get('reason'),
             'symptoms'         => $get('symptoms'),
             'notes'            => $get('notes'),
+            'info'             => $get('info'),
         ];
 
         if (!in_array($meta['status'], ['safe', 'caution', 'toxic'], true)) {

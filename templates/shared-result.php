@@ -59,6 +59,10 @@
                 <p class="doggl-notes"><?php echo esc_html($food_data['notes']); ?></p>
             <?php endif; ?>
         </div>
+        <div class="food-info-card">
+            <h4><?php _e('Was Sie wissen sollten', 'doggl-food-checker'); ?></h4>
+            <p><?php echo esc_html($food_data['info'] ? $food_data['info'] : '—'); ?></p>
+        </div>
 
         <!-- Symptoms -->
         <?php if ($food_data['status'] !== 'safe' && !empty($food_data['symptoms'])): ?>

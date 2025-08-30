@@ -343,6 +343,7 @@ class DogglFoodChecker {
             'symptoms' => array_filter(explode(',', get_post_meta($post->ID, 'symptoms', true))),
             'emergency' => (bool) get_post_meta($post->ID, 'emergency', true),
             'notes' => get_post_meta($post->ID, 'notes', true) ?: '',
+            'info' => get_post_meta($post->ID, 'info', true) ?: '',
             'ageNotes' => get_post_meta($post->ID, 'age_notes', true) ?: '',
             'sources' => array_filter(explode(',', get_post_meta($post->ID, 'sources', true))),
             'updatedAt' => $post->post_modified
@@ -511,3 +512,21 @@ require_once DOGGL_FOOD_CHECKER_PLUGIN_DIR . 'admin/import.php';
 
 // Initialize the plugin
 new DogglFoodChecker();
+
+if (is_admin()) {
+    add_action('add_meta_boxes_doggl_food', function ($post) {
+        $info = get_post_meta($post->ID, 'info', true);
+        if ($info) {
+            add_meta_box(
+                'doggl_food_info',
+                __('Kunden-Info', 'doggl-food-checker'),
+                function () use ($info) {
+                    echo wpautop(esc_html($info));
+                },
+                'doggl_food',
+                'normal',
+                'high'
+            );
+        }
+    });
+}
