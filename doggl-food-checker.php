@@ -507,5 +507,7 @@ class DogglFoodChecker {
     }
 }
 
+require_once DOGGL_FOOD_CHECKER_PLUGIN_DIR . 'admin/import.php';
+
 // Initialize the plugin
 new DogglFoodChecker();
