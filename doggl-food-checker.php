@@ -379,6 +379,10 @@ class DogglFoodChecker {
         if ($dog_name) {
             $args['dog_name'] = $dog_name;
         }
+        $weight = $request->get_param('weight_kg');
+        if ($weight) {
+            $args['weight_kg'] = floatval($weight);
+        }
 
         doggl_generate_food_pdf(array($item), $args);
     }
@@ -555,27 +559,68 @@ class DogglFoodChecker {
 }
 
 function doggl_generate_food_pdf(array $items, array $args = array()) {
-    $endpoint = 'https://h2concepts.de/tools/food_pdf.php';
-    $api_key  = 'h2c_92DF!kf392AzJxLP0sQRX';
+    if (!defined('DOGGL_FOOD_PDF_SECRET') || DOGGL_FOOD_PDF_SECRET === '') {
+        wp_die('Serverfehler: DOGGL_FOOD_PDF_SECRET fehlt in wp-config.php');
+    }
 
-    $payload = array(
-        'report_title' => $args['report_title'] ?? 'Food-Checker Ergebnis',
-        'dog_name'     => $args['dog_name'] ?? '',
-        'logo_url'     => $args['logo_url'] ?? 'https://getdoggl.de/wp-content/uploads/2024/12/doggle_logo_lila.webp',
-        'accent'       => '#404697',
-        'generated_at' => current_time('Y-m-d H:i'),
-        'items_json'   => wp_json_encode($items),
+    $dog_name = $args['dog_name'] ?? '';
+    $weightKg = isset($args['weight_kg']) ? floatval($args['weight_kg']) : null;
+
+    $body = array(
+        'brand'         => 'GetDoggl',
+        'report_title'  => 'Food-Checker Ergebnis',
+        'dog_name'      => $dog_name,
+        'generated_at'  => current_time('Y-m-d H:i'),
+        'accent'        => '#404697',
+        'logo_url'      => 'https://getdoggl.de/wp-content/uploads/2024/12/doggle_logo_lila.webp',
+        'dog_weight_kg' => $weightKg,
+        'items_json'    => wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
     );
 
-    $url      = add_query_arg('key', rawurlencode($api_key), $endpoint);
+    if (!function_exists('doggl_canon')) {
+        function doggl_canon($value) {
+            if (is_array($value)) {
+                $is_list = array_keys($value) === range(0, count($value) - 1);
+                if ($is_list) {
+                    $out = array();
+                    foreach ($value as $v) {
+                        $out[] = doggl_canon($v);
+                    }
+                    return $out;
+                }
+                ksort($value);
+                $out = array();
+                foreach ($value as $k => $v) {
+                    $out[(string) $k] = doggl_canon($v);
+                }
+                return $out;
+            } elseif (is_object($value)) {
+                return doggl_canon(get_object_vars($value));
+            } elseif (is_bool($value) || is_null($value) || is_int($value) || is_float($value)) {
+                return $value;
+            }
+            return (string) $value;
+        }
+    }
+    $canon = doggl_canon($body);
+
+    $ts   = time();
+    $data = $ts . "\n" . wp_json_encode($canon, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $sig  = hash_hmac('sha256', $data, DOGGL_FOOD_PDF_SECRET);
+
     $req_args = array(
         'timeout' => 30,
         'method'  => 'POST',
-        'headers' => array('Accept' => 'application/pdf'),
-        'body'    => $payload,
+        'headers' => array(
+            'Accept'       => 'application/pdf',
+            'Content-Type' => 'application/json',
+            'X-Doggl-Ts'   => (string) $ts,
+            'X-Doggl-Sig'  => $sig,
+        ),
+        'body' => wp_json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
     );
 
-    $res = wp_remote_post($url, $req_args);
+    $res = wp_remote_post('https://h2concepts.de/tools/food_pdf.php', $req_args);
 
     if (is_wp_error($res)) {
         wp_die('PDF-Export fehlgeschlagen: ' . esc_html($res->get_error_message()));
@@ -584,17 +629,11 @@ function doggl_generate_food_pdf(array $items, array $args = array()) {
     $code = wp_remote_retrieve_response_code($res);
     $pdf  = wp_remote_retrieve_body($res);
 
-    if ($code !== 200 || !$pdf) {
-        $snippet = wp_strip_all_tags(substr((string) $pdf, 0, 300));
-        wp_die('PDF-Export fehlgeschlagen (HTTP ' . $code . '). Antwort: ' . esc_html($snippet));
+    if ($code !== 200 || strncmp($pdf, '%PDF', 4) !== 0) {
+        $snippet = esc_html(wp_strip_all_tags(substr((string) $pdf, 0, 300)));
+        wp_die('Ungültige Antwort (HTTP ' . $code . '): ' . $snippet);
     }
 
-    if (strncmp($pdf, '%PDF', 4) !== 0) {
-        $snippet = wp_strip_all_tags(substr((string) $pdf, 0, 300));
-        wp_die('Ungültige PDF-Antwort vom Server. Beginn: ' . esc_html($snippet));
-    }
-
-    $dog_name  = $payload['dog_name'] ?? '';
     $slug      = preg_replace('/[^a-z0-9\-]+/i', '-', strtolower($dog_name ?: 'report'));
     $timestamp = current_time('Y-m-d_H-i-s');
     $filename  = "food-check-{$slug}-{$timestamp}.pdf";
