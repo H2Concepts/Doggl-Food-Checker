@@ -480,30 +480,9 @@ jQuery(document).ready(function($) {
     
     window.dogglExportPDF = function() {
         if (!selectedFood) return;
-        
-        const exportData = {
-            food: selectedFood,
-            weight: dogWeight,
-            portion: calculatePortion(selectedFood, dogWeight),
-            timestamp: new Date().toISOString()
-        };
-        
-        $.ajax({
-            url: doggl_food.rest_url + 'food/export',
-            method: 'POST',
-            data: JSON.stringify(exportData),
-            contentType: 'application/json',
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-WP-Nonce', doggl_food.nonce);
-            }
-        })
-        .done(function(response) {
-            alert(doggl_food.strings.pdf_generating);
-            trackEvent('food_pdf', { food_name: selectedFood.name });
-        })
-        .fail(function(xhr) {
-            console.error('PDF export failed:', xhr.responseJSON);
-            alert('PDF-Export fehlgeschlagen. Bitte versuche es erneut.');
-        });
+
+        const url = doggl_food.rest_url + 'food/export?id=' + selectedFood.id + '&weight_kg=' + dogWeight;
+        window.open(url, '_blank');
+        trackEvent('food_pdf', { food_name: selectedFood.name });
     };
 });

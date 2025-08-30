@@ -137,9 +137,25 @@ class DogglFoodChecker {
         ));
         
         register_rest_route('doggl/v1', '/food/export', array(
-            'methods' => 'POST',
+            'methods' => array('GET'),
             'callback' => array($this, 'export_pdf'),
             'permission_callback' => '__return_true',
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                    'sanitize_callback' => 'absint',
+                ),
+                'dog_name' => array(
+                    'required' => false,
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+                'weight_kg' => array(
+                    'required' => false,
+                    'type' => 'number',
+                ),
+            ),
         ));
         
         register_rest_route('doggl/v1', '/food/item/(?P<id>\d+)', array(
@@ -304,15 +320,43 @@ class DogglFoodChecker {
     }
     
     public function export_pdf($request) {
-        $data = $request->get_json_params();
-        
-        // In a real implementation, you'd use a PDF library like TCPDF or Dompdf
-        // For now, return a placeholder response
-        return array(
-            'success' => true,
-            'message' => __('PDF-Export würde hier implementiert werden', 'doggl-food-checker'),
-            'download_url' => '#'
+        $id = $request->get_param('id');
+        $food = $this->get_food_data($id);
+
+        if (!$food) {
+            return new WP_Error('not_found', __('Lebensmittel nicht gefunden', 'doggl-food-checker'), array('status' => 404));
+        }
+
+        $item = array(
+            'title' => $food['name'],
+            'status' => $food['status'],
+            'max_frequency' => $food['maxFrequency'],
+            'portion_g_per_kg' => $food['portionGPerKg'],
+            'emergency' => $food['emergency'] ? 1 : 0,
+            'info' => $food['info'],
+            'symptoms' => implode(', ', $food['symptoms']),
+            'notes' => $food['notes'],
         );
+
+        $args = array();
+        $dog_name = $request->get_param('dog_name');
+        if ($dog_name) {
+            $args['dog_name'] = $dog_name;
+        }
+        $weight = $request->get_param('weight_kg');
+        if ($weight) {
+            $args['weight_kg'] = floatval($weight);
+        }
+
+        $pdf = doggl_generate_food_pdf(array($item), $args);
+        if (is_wp_error($pdf)) {
+            return $pdf;
+        }
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="food-check.pdf"');
+        echo $pdf;
+        exit;
     }
     
     public function get_food_item($request) {
@@ -507,6 +551,35 @@ class DogglFoodChecker {
             }
         }
     }
+}
+
+function doggl_generate_food_pdf(array $items, array $args = array()) {
+    $endpoint = 'https://h2concepts.de/tools/food_pdf.php';
+    $key      = 'h2c_92DF!kf392AzJxLP0sQRX';
+
+    $payload = array(
+        'report_title' => $args['report_title'] ?? 'Food-Checker Ergebnis',
+        'dog_name'     => $args['dog_name'] ?? '',
+        'logo_url'     => $args['logo_url'] ?? get_site_icon_url(),
+        'generated_at' => current_time('Y-m-d H:i'),
+        'weight_kg'    => $args['weight_kg'] ?? '',
+        'items_json'   => wp_json_encode($items),
+    );
+
+    $res = wp_remote_post(add_query_arg('key', $key, $endpoint), array(
+        'timeout' => 30,
+        'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
+        'body'    => $payload,
+    ));
+
+    if (is_wp_error($res)) {
+        return $res;
+    }
+    if (wp_remote_retrieve_response_code($res) !== 200) {
+        return new WP_Error('pdf_http', 'PDF-Service Fehler', array('res' => $res));
+    }
+
+    return wp_remote_retrieve_body($res);
 }
 
 require_once DOGGL_FOOD_CHECKER_PLUGIN_DIR . 'admin/import.php';
