@@ -64,13 +64,13 @@
 }
 
 .doggl-search-input {
-    width: 100%;
-    padding: 12px 48px;
-    font-size: 1.125rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    outline: none;
-    transition: all 0.2s ease;
+    width: 100% !important;
+    padding: 12px 48px !important;
+    font-size: 1.125rem !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 0.75rem !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
 }
 
 .doggl-search-input:focus {
@@ -81,21 +81,23 @@
 .doggl-loading {
     position: absolute;
     right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
 }
 
 .doggl-spinner {
     width: 1.25rem;
     height: 1.25rem;
     border: 2px solid #e5e7eb;
+    border-top-color: #3b82f6;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: doggl-spin 0.6s linear infinite;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes doggl-spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Search Results */

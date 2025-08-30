@@ -125,11 +125,11 @@ jQuery(document).ready(function($) {
     }
     
     function showLoading() {
-        $loading.show();
+        $loading.css('display', 'flex');
     }
-    
+
     function hideLoading() {
-        $loading.hide();
+        $loading.css('display', 'none');
     }
     
     function showResults() {
