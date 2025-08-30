@@ -4,6 +4,7 @@
         <!-- Search Section -->
         <div class="doggl-search-section">
             <div class="doggl-search-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search doggl-search-icon"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
                 <input
                     type="text"
                     id="doggl-search-input"
@@ -26,7 +27,7 @@
         <!-- Weight Slider -->
         <div id="doggl-weight-section" class="doggl-weight-section" style="display: none;">
             <div class="doggl-weight-header">
-                <span class="doggl-weight-icon">⚖️</span>
+                <span class="doggl-weight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-weight h-5 w-5 text-gray-600 mr-2"><circle cx="12" cy="5" r="3"></circle><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z"></path></svg></span>
                 <label for="doggl-weight-slider" class="doggl-weight-label">
                     <?php _e('Gewicht deines Hundes', 'doggl-food-checker'); ?>
                 </label>
@@ -55,7 +56,7 @@
 
         <!-- No selection state -->
         <div id="doggl-no-selection" class="doggl-no-selection">
-            <div class="doggl-search-placeholder">🔍</div>
+            <div class="doggl-search-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search h-8 w-8 text-gray-400"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></div>
             <p class="doggl-placeholder-text">
                 <?php _e('Gib ein Lebensmittel ein, um zu erfahren, ob es für deinen Hund sicher ist', 'doggl-food-checker'); ?>
             </p>
@@ -101,7 +102,7 @@
 
     <!-- Disclaimer -->
     <div class="doggl-disclaimer">
-        <div class="doggl-disclaimer-icon">⚠️</div>
+        <div class="doggl-disclaimer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle h-6 w-6 text-yellow-600 mr-3 mt-0.5 flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></div>
         <div>
             <h3 class="doggl-disclaimer-title"><?php _e('Wichtiger Hinweis', 'doggl-food-checker'); ?></h3>
             <p class="doggl-disclaimer-text">

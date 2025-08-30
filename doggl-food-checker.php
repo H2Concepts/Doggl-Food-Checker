@@ -229,6 +229,57 @@ class DogglFoodChecker {
             'alternatives' => array_slice($results, 1, 5)
         );
     }
+
+    private function get_status_config($status) {
+        $configs = array(
+            'safe' => array(
+                'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle h-8 w-8 mr-3 text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>',
+                'title' => __('Erlaubt', 'doggl-food-checker'),
+                'answer' => __('Ja, in Maßen erlaubt', 'doggl-food-checker')
+            ),
+            'caution' => array(
+                'icon' => '⚠️',
+                'title' => __('Vorsicht', 'doggl-food-checker'),
+                'answer' => __('Nur selten und wenig', 'doggl-food-checker')
+            ),
+            'danger' => array(
+                'icon' => '🚨',
+                'title' => __('Gefährlich', 'doggl-food-checker'),
+                'answer' => __('Nein – gefährlich!', 'doggl-food-checker')
+            ),
+            'toxic' => array(
+                'icon' => '☠️',
+                'title' => __('Hochgiftig', 'doggl-food-checker'),
+                'answer' => __('Nein – hochgiftig!', 'doggl-food-checker')
+            ),
+        );
+        return $configs[$status] ?? $configs['caution'];
+    }
+
+    public function get_status_icon($status) {
+        $config = $this->get_status_config($status);
+        return $config['icon'];
+    }
+
+    public function get_status_title($status) {
+        $config = $this->get_status_config($status);
+        return $config['title'];
+    }
+
+    public function get_status_answer($status) {
+        $config = $this->get_status_config($status);
+        return $config['answer'];
+    }
+
+    public function get_frequency_text($frequency) {
+        $texts = array(
+            'never' => __('Niemals', 'doggl-food-checker'),
+            'rare' => __('Sehr selten (max. 1x pro Monat)', 'doggl-food-checker'),
+            'occasional' => __('Gelegentlich (max. 1x pro Woche)', 'doggl-food-checker'),
+            'often' => __('Häufiger möglich', 'doggl-food-checker'),
+        );
+        return $texts[$frequency] ?? __('Unbekannt', 'doggl-food-checker');
+    }
     
     public function create_share_token($request) {
         $data = $request->get_json_params();

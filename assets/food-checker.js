@@ -327,11 +327,11 @@ jQuery(document).ready(function($) {
         html += `
             <div class="doggl-actions">
                 <button class="doggl-btn doggl-btn-primary" onclick="dogglShare()">
-                    <span class="doggl-btn-icon">📤</span>
+                    <span class="doggl-btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 h-4 w-4 mr-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg></span>
                     Ergebnis teilen
                 </button>
                 <button class="doggl-btn doggl-btn-secondary" onclick="dogglExportPDF()">
-                    <span class="doggl-btn-icon">📄</span>
+                    <span class="doggl-btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4 mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg></span>
                     Als PDF speichern
                 </button>
             </div>
@@ -354,7 +354,7 @@ jQuery(document).ready(function($) {
     function getStatusConfig(status) {
         const configs = {
             safe: {
-                icon: '✅',
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle h-8 w-8 mr-3 text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>',
                 title: 'Erlaubt',
                 shortAnswer: 'Ja, in Maßen erlaubt'
             },
