@@ -65,7 +65,7 @@
 
 .doggl-search-input {
     width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
+    padding: 12px 48px;
     font-size: 1.125rem;
     border: 2px solid #e5e7eb;
     border-radius: 0.75rem;
@@ -89,7 +89,6 @@
     width: 1.25rem;
     height: 1.25rem;
     border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
