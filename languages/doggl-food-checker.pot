@@ -38,7 +38,7 @@ msgstr ""
 msgid "Suche läuft..."
 msgstr ""
 
-msgid "⚠️ NOTFALL – Sofort handeln!"
+msgid "NOTFALL – Sofort handeln!"
 msgstr ""
 
 msgid "Kontaktiere sofort deinen Tierarzt oder den tierärztlichen Notdienst!"
