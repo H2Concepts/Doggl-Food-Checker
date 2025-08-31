@@ -25,9 +25,24 @@ jQuery(document).ready(function($) {
         
         // Check if we're on a shared result page
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('doggl_token')) {
+        const token = urlParams.get('doggl_token');
+        if (token) {
             // Hide search and weight sections for shared results
             $('.doggl-search-section, .doggl-weight-section, .doggl-no-selection').hide();
+
+            $.ajax({
+                url: doggl_food.rest_url + 'food/shared',
+                method: 'GET',
+                data: { token: token },
+            })
+            .done(function(res) {
+                selectedFood = res.food;
+                dogWeight = res.weight || dogWeight;
+                updateResultCard();
+            })
+            .fail(function() {
+                $resultCard.html('<p>Dieses geteilte Ergebnis ist nicht mehr verfügbar.</p>').show();
+            });
         }
     }
     
@@ -125,11 +140,11 @@ jQuery(document).ready(function($) {
     }
     
     function showLoading() {
-        $loading.show();
+        $loading.css('display', 'inline-block');
     }
-    
+
     function hideLoading() {
-        $loading.hide();
+        $loading.css('display', 'none');
     }
     
     function showResults() {
@@ -146,12 +161,8 @@ jQuery(document).ready(function($) {
     function searchFoods(query) {
         $.ajax({
             url: doggl_food.rest_url + 'food/search',
-            method: 'POST',
-            data: JSON.stringify({
-                q: query,
-                weight_kg: dogWeight
-            }),
-            contentType: 'application/json',
+            method: 'GET',
+            data: { q: query, weight_kg: dogWeight },
             beforeSend: function(xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', doggl_food.nonce);
             }
@@ -162,18 +173,25 @@ jQuery(document).ready(function($) {
             trackEvent('food_search', { query: query });
         })
         .fail(function(xhr) {
+            console.error('Food search failed', xhr.status, xhr.responseText);
             hideLoading();
-            if (xhr.status === 404) {
-                showNoResults(query);
-            } else {
-                console.error('Search failed:', xhr.responseJSON);
-            }
+            $searchResults
+                .html('<li class="doggl-search-result doggl-empty">Keine Ergebnisse oder Fehler bei der Suche.</li>');
+            showResults();
         });
     }
-    
+
     function displayResults(results) {
         hideLoading();
-        
+
+        if (!results || (!results.best && !Array.isArray(results.alternatives))) {
+            $searchResults.html(
+                '<li class="doggl-search-result doggl-empty">Keine Ergebnisse</li>'
+            );
+            showResults();
+            return;
+        }
+
         const allResults = [results.best, ...results.alternatives].filter(Boolean);
         let html = '';
         
@@ -207,18 +225,6 @@ jQuery(document).ready(function($) {
             selectFood(food);
         });
         
-        showResults();
-    }
-    
-    function showNoResults(query) {
-        const html = `
-            <li class="doggl-search-result doggl-no-results">
-                <p style="text-align: center; color: #6b7280; padding: 1rem;">
-                    ${doggl_food.strings.no_results} "${escapeHtml(query)}"
-                </p>
-            </li>
-        `;
-        $searchResults.html(html).show();
         showResults();
     }
     
@@ -264,7 +270,7 @@ jQuery(document).ready(function($) {
             </div>
             
             <div class="doggl-quick-answer">
-                <h3 class="doggl-section-title">Schnelle Antwort</h3>
+                <h4 class="doggl-section-title">Schnelle Antwort</h4>
                 <p class="doggl-quick-answer-text">${statusConfig.shortAnswer}</p>
             </div>
         `;
@@ -274,12 +280,12 @@ jQuery(document).ready(function($) {
             html += `
                 <div class="doggl-portion-recommendation">
                     <h4 class="doggl-portion-title">
-                        🕐 Empfohlene Portion
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-4 w-4 mr-2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Empfohlene Portion
                     </h4>
                     <p class="doggl-portion-amount">
                         <span class="doggl-portion-value">${portion}g</span> für deinen ${dogWeight}kg Hund
                     </p>
-                    ${selectedFood.maxFrequency ? 
+                    ${selectedFood.maxFrequency ?
                         `<p class="doggl-portion-frequency">Häufigkeit: ${getFrequencyText(selectedFood.maxFrequency)}</p>` : ''}
                 </div>
             `;
@@ -292,10 +298,14 @@ jQuery(document).ready(function($) {
                 <p class="doggl-reason-text">${escapeHtml(selectedFood.reason)}</p>
                 ${selectedFood.notes ? `<p class="doggl-notes">${escapeHtml(selectedFood.notes)}</p>` : ''}
             </div>
+            <div class="food-info-card">
+                <h4>Was Sie wissen sollten</h4>
+                <p class="food-info-text">${selectedFood.info ? escapeHtml(selectedFood.info) : '—'}</p>
+            </div>
         `;
-        
+
         // Symptoms
-        if (selectedFood.symptoms && selectedFood.symptoms.length > 0) {
+        if (selectedFood.status !== 'safe' && selectedFood.symptoms && selectedFood.symptoms.length > 0) {
             html += `
                 <div class="doggl-symptoms">
                     <h4 class="doggl-section-title">Mögliche Symptome</h4>
@@ -311,9 +321,9 @@ jQuery(document).ready(function($) {
             html += `
                 <div class="doggl-emergency">
                     <div class="doggl-emergency-content">
-                        <div class="doggl-emergency-icon">📞</div>
+                        <div class="doggl-emergency-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone h-5 w-5 text-red-600 mr-3 mt-0.5 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
                         <div>
-                            <h4 class="doggl-emergency-title">⚠️ NOTFALL – Sofort handeln!</h4>
+                            <h4 class="doggl-emergency-title">NOTFALL – Sofort handeln!</h4>
                             <p class="doggl-emergency-text">
                                 Kontaktiere sofort deinen Tierarzt oder den tierärztlichen Notdienst!
                             </p>
@@ -336,11 +346,11 @@ jQuery(document).ready(function($) {
         html += `
             <div class="doggl-actions">
                 <button class="doggl-btn doggl-btn-primary" onclick="dogglShare()">
-                    <span class="doggl-btn-icon">📤</span>
+                    <span class="doggl-btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 h-4 w-4 mr-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg></span>
                     Ergebnis teilen
                 </button>
                 <button class="doggl-btn doggl-btn-secondary" onclick="dogglExportPDF()">
-                    <span class="doggl-btn-icon">📄</span>
+                    <span class="doggl-btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download h-4 w-4 mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg></span>
                     Als PDF speichern
                 </button>
             </div>
@@ -363,7 +373,7 @@ jQuery(document).ready(function($) {
     function getStatusConfig(status) {
         const configs = {
             safe: {
-                icon: '✅',
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle h-8 w-8 mr-3 text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg>',
                 title: 'Erlaubt',
                 shortAnswer: 'Ja, in Maßen erlaubt'
             },
@@ -378,7 +388,7 @@ jQuery(document).ready(function($) {
                 shortAnswer: 'Nein – gefährlich!'
             },
             toxic: {
-                icon: '☠️',
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-xcircle h-8 w-8 mr-3"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>',
                 title: 'Hochgiftig',
                 shortAnswer: 'Nein – hochgiftig!'
             }
@@ -448,7 +458,8 @@ jQuery(document).ready(function($) {
             foodName: selectedFood.name,
             status: selectedFood.status,
             weight: dogWeight,
-            portion: calculatePortion(selectedFood, dogWeight)
+            portion: calculatePortion(selectedFood, dogWeight),
+            pageUrl: window.location.origin + window.location.pathname
         };
         
         $.ajax({
@@ -484,30 +495,9 @@ jQuery(document).ready(function($) {
     
     window.dogglExportPDF = function() {
         if (!selectedFood) return;
-        
-        const exportData = {
-            food: selectedFood,
-            weight: dogWeight,
-            portion: calculatePortion(selectedFood, dogWeight),
-            timestamp: new Date().toISOString()
-        };
-        
-        $.ajax({
-            url: doggl_food.rest_url + 'food/export',
-            method: 'POST',
-            data: JSON.stringify(exportData),
-            contentType: 'application/json',
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-WP-Nonce', doggl_food.nonce);
-            }
-        })
-        .done(function(response) {
-            alert(doggl_food.strings.pdf_generating);
-            trackEvent('food_pdf', { food_name: selectedFood.name });
-        })
-        .fail(function(xhr) {
-            console.error('PDF export failed:', xhr.responseJSON);
-            alert('PDF-Export fehlgeschlagen. Bitte versuche es erneut.');
-        });
+
+        const url = doggl_food.rest_url + 'food/export?id=' + selectedFood.id + '&weight_kg=' + dogWeight;
+        window.open(url, '_blank');
+        trackEvent('food_pdf', { food_name: selectedFood.name });
     };
 });

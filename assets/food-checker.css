@@ -2,9 +2,13 @@
 .doggl-container {
     max-width: 1024px;
     margin: 0 auto;
-    padding: 2rem 1rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+
+.text-gray-400 { color: #9ca3af; }
+.text-gray-600 { color: #4b5563; }
+.text-green-600 { color: #16a34a; }
+.text-yellow-600 { color: #ca8a04; }
 
 /* Header */
 .doggl-header {
@@ -33,7 +37,7 @@
     background: white;
     border-radius: 1rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    padding: 2rem;
+    padding: 1rem;
     margin-bottom: 3rem;
 }
 
@@ -52,18 +56,20 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
     color: #9ca3af;
+    pointer-events: none;
 }
 
 .doggl-search-input {
-    width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
-    font-size: 1.125rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    outline: none;
-    transition: all 0.2s ease;
+    width: 100% !important;
+    padding: 12px 48px !important;
+    font-size: 1.125rem !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 0.75rem !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
 }
 
 .doggl-search-input:focus {
@@ -74,22 +80,18 @@
 .doggl-loading {
     position: absolute;
     right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.doggl-spinner {
-    width: 1.25rem;
-    height: 1.25rem;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
+    top: 0.5rem;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #404697;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: doggl-spin 1s linear infinite;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes doggl-spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Search Results */
@@ -189,7 +191,8 @@
 
 .doggl-weight-icon {
     margin-right: 0.5rem;
-    font-size: 1.25rem;
+    color: #4b5563;
+    display: inline-flex;
 }
 
 .doggl-weight-label {
@@ -334,11 +337,13 @@
 }
 
 .doggl-portion-title {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.125rem;
     color: #1e3a8a;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
 .doggl-portion-amount {
@@ -372,6 +377,28 @@
     margin-top: 0.5rem;
 }
 
+/* Informational note block shown on result cards */
+.food-info-card {
+    border: 1px solid #ffb80c;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #fae3af;
+    margin: 25px 0;
+}
+
+.food-info-card h4 {
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.food-info-card p {
+    margin: 0;
+    line-height: 1.5;
+    color: #000000;
+}
+
 /* Symptoms */
 .doggl-symptoms {
     margin-bottom: 1.5rem;
@@ -391,7 +418,7 @@
 /* Emergency Warning */
 .doggl-emergency {
     padding: 1rem;
-    background-color: #fef2f2;
+    background-color: #edcfcf;
     border: 2px solid #fca5a5;
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
@@ -412,6 +439,7 @@
 
 .doggl-emergency-title {
     font-weight: 700;
+    font-size: 1.125rem;
     color: #991b1b;
     margin-bottom: 0.5rem;
 }
@@ -429,7 +457,8 @@
 }
 
 .doggl-emergency-actions-title {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.125rem;
     color: #991b1b;
     margin-bottom: 0.25rem;
 }
@@ -473,6 +502,7 @@
 
 .doggl-btn-primary:hover {
     background-color: #2563eb;
+    color: white;
 }
 
 .doggl-btn-secondary {
@@ -482,6 +512,7 @@
 
 .doggl-btn-secondary:hover {
     background-color: #4b5563;
+    color: white;
 }
 
 .doggl-btn-icon {
@@ -512,7 +543,6 @@
 }
 
 .doggl-faq-item {
-    border: 1px solid #e5e7eb;
     border-radius: 0.5rem;
     overflow: hidden;
 }
@@ -567,9 +597,13 @@
 }
 
 .doggl-search-placeholder {
-    font-size: 4rem;
     color: #d1d5db;
     margin-bottom: 1rem;
+}
+
+.doggl-search-placeholder svg {
+    width: 2rem;
+    height: 2rem;
 }
 
 .doggl-placeholder-text {
@@ -596,7 +630,8 @@
 }
 
 .doggl-disclaimer-title {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.125rem;
     color: #92400e;
     margin-bottom: 0.5rem;
 }
@@ -659,10 +694,6 @@
 }
 
 @media (min-width: 768px) {
-    .doggl-container {
-        padding: 2rem;
-    }
-    
     .doggl-title {
         font-size: 3.5rem;
     }

@@ -38,7 +38,7 @@ msgstr ""
 msgid "Suche läuft..."
 msgstr ""
 
-msgid "⚠️ NOTFALL – Sofort handeln!"
+msgid "NOTFALL – Sofort handeln!"
 msgstr ""
 
 msgid "Kontaktiere sofort deinen Tierarzt oder den tierärztlichen Notdienst!"
@@ -53,8 +53,6 @@ msgstr ""
 msgid "Darf mein Hund das essen?"
 msgstr ""
 
-msgid "Überprüfe schnell und sicher, ob ein Lebensmittel für deinen Hund geeignet ist. Mit Portionsempfehlungen und Notfall-Hinweisen."
-msgstr ""
 
 msgid "Gewicht deines Hundes"
 msgstr ""
@@ -81,4 +79,10 @@ msgid "Wichtiger Hinweis"
 msgstr ""
 
 msgid "Diese Informationen ersetzen keinen tierärztlichen Rat. Bei Vergiftungsverdacht oder Unsicherheiten kontaktiere sofort deinen Tierarzt oder den tierärztlichen Notdienst."
+msgstr ""
+
+msgid "Was Sie wissen sollten"
+msgstr ""
+
+msgid "Kunden-Info"
 msgstr ""
